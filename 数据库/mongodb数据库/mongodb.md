@@ -15,55 +15,74 @@ MongoDB是正在成长但数据架构不稳定的业务或项目的最合适选�
 
 
 
-MongoDB语法与现有关系型数据库SQL语法比较
- 1MongoDB语法            MySql语法
- 2
- 3db.test.find({'name':'foobar'})             <==>          select * from test where name='foobar'
- 4
- 5db.test.find()                                      <==>          select *from test
- 6
- 7db.test.find({'ID':10}).count()             <==>          select count(*) from test where ID=10
- 8
- 9db.test.find().skip(10).limit(20)          <==>          select * from test limit 10,20
-10
-11db.test.find({'ID':{$in:[25,35,45]}})     <==>          select * from test where ID in (25,35,45)
-12
-13db.test.find().sort({'ID':-1})                 <==>          select * from test order by IDdesc
-14
-15db.test.distinct('name',{'ID':{$lt:20}}) <==>          select distinct(name) from testwhere ID<20
-16
-17db.test.group({key:{'name':true},cond:{'name':'foo'},reduce:function(obj,prev){prev.msum+=obj.marks;},initial:{msum:0}})     <==>     select name,sum(marks) from testgroup by name
-18
-19db.test.find('this.ID<20',{name:1})    <==>           select name from test whereID<20
-20
-21db.test.insert({'name':'foobar','age':25})    <==>       insertinto test ('name','age') values('foobar',25)
-22
-23db.test.remove({})                                     <==>       delete * from test
-24
-25db.test.remove({'age':20})                        <==>       delete test where age=20
-26
-27db.test.remove({'age':{$lt:20}})                <==>        delete test where age<20
-28
-29db.test.remove({'age':{$lte:20}})              <==>        delete test where age<=20
-30
-31db.test.remove({'age':{$gt:20}})              <==>         delete test where age>20
-32
-33db.test.remove({'age':{$gte:20}})            <==>         delete test where age>=20
-34
-35db.test.remove({'age':{$ne:20}})             <==>         delete test where age!=20
-36
-37db.test.update({'name':'foobar'},{$set:{'age':36}})<==> update test set age=36 where name='foobar'
-38
-39db.test.update({'name':'foobar'},{$inc:{'age':3}})<==> update test set age=age+3 where name='foobar'
-40
-41模糊查询：$regex
-42
-43db.test.find({"name":{$regex:"aaa"}})
-44
-45分组个数过滤
-46
-47db.getCollection('id_mapper').aggregate([{$group:{ _id :"$contract_id",count:{$sum:1}}},{$match:{count:{$gt:1}}}])
-48
-49判断是否为空
-50
-51db.getCollection('id_mapper').find({"sinocardid":{$in:[null]}})
+## 集合与文档
+数据库名称： myappdb
+示例集合1： events（活动），用于存储各种活动的信息。 活动可以是各种类型，如音乐会、体育比赛、艺术展览等，每种类型的活动都具有不同的属性。以下是两个示例文档，分别代表音乐会和体育比赛
+文档1： 音乐会
+{
+  "_id": ObjectId("5fbbf0150c6c74ab7a64a9fa"),
+  "event_type": "音乐会",
+  "artist": "Coldplay",
+  "venue": "体育馆A",
+  "date": ISODate("2022-07-15T19:00:00Z"),
+  "ticket_price": 75.99,
+  "attendance": 15000
+}
+在这个文档中，我们存储了一个音乐会的信息，包括艺术家、场馆、日期、票价和参与人数等字段。
+
+文档2： 体育比赛
+{
+  "_id": ObjectId("5fbbf0150c6c74ab7a64a9fb"),
+  "event_type": "体育比赛",
+  "teams": ["队伍A", "队伍B"],
+  "venue": "体育场X",
+  "date": ISODate("2022-08-20T14:30:00Z"),
+  "ticket_price": 45.50,
+  "spectators": 25000
+}
+在这个文档中，我们存储了一个体育比赛的信息，包括参赛队伍、场馆、日期、票价和观众人数等字段。
+在这个示例中，不同类型的活动（音乐会和体育比赛）具有不同的字段。尽管它们都存储在同一个 "events" 集合中，但它们的字段结构可以根据活动类型的不同而灵活变化。这充分展示了 MongoDB 非关系型数据库的灵活性，使其适合存储半结构化和非结构化数据，无需严格的表结构。
+
+
+示例集合2： articles（文章）
+文档1：MongoDB入门指南文章
+在这个集合中，我们存储了一些博客文章的信息。每个文档代表一篇文章，包含标题、作者、内容等字段。
+{
+  "_id": ObjectId("5fbbf0150c6c74ab7a64a9fa"),
+  "title": "MongoDB入门指南",
+  "author": "John Doe",
+  "content": "MongoDB是一个NoSQL数据库...",
+  "tags": ["数据库", "NoSQL", "MongoDB"]
+}
+
+示例集合3： users（用户）
+文档1：jane_smith用户
+这个集合存储了应用程序的用户信息，包括用户名、电子邮件地址、年龄等字段。
+{
+  "_id": ObjectId("5fbbf0150c6c74ab7a64a9fb"),
+  "username": "jane_smith",
+  "email": "jane@example.com",
+  "age": 28
+}
+
+示例集合4： products（产品）
+文档1：Smartphone X产品
+这个集合存储了在线商店的产品信息，每个文档包括产品名称、价格、描述等字段。
+{
+  "_id": ObjectId("5fbbf0150c6c74ab7a64a9fc"),
+  "name": "Smartphone X",
+  "price": 599.99,
+  "description": "最新款智能手机..."
+}
+
+
+示例集合5： orders（订单）
+文档1：2021092501订单
+在这个集合中，我们存储了用户的订单信息，包括订单号、用户ID、订单总额等字段。
+{
+  "_id": ObjectId("5fbbf0150c6c74ab7a64a9fd"),
+  "order_number": "2021092501",
+  "user_id": ObjectId("5fbbf0150c6c74ab7a64a9fb"),
+  "total_amount": 799.98
+}
+

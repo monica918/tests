@@ -13,6 +13,7 @@ Redis 将数据存储为键值对，其中每个数据条目都有一个唯一�
 在需要记录计数、排名和统计的应用程序中，与这些数据相关的操作频率通常很高，因此它们也被视为热数据。以下是一个示例：
 应用场景： 社交媒体网站的帖子点赞和排行榜。
 说明： 社交媒体网站通常需要追踪每个帖子的点赞数量，并生成热门帖子的排行榜。这些数据的操作非常频繁，因为用户可以随时点赞或取消点赞帖子。为了高效处理这些操作，网站可以使用 Redis 的计数器功能来跟踪每个帖子的点赞数量，并使用有序集合来实现排行榜。这使得计数和排名操作变得高效，同时提供了实时的排行榜数据。
+4. 分布定时任务（比如失败重试机制：5min/10min/15min）
 
 
 
@@ -37,4 +38,64 @@ HSET user:1 name "Alice"
 HSET user:1 age 25
 HSET user:1 city "New York"
 在这个示例中，我们创建了一个名为 user:1 的哈希表，包含了三个字段：name、age 和 city，分别存储了用户 Alice 的姓名、年龄和所在城市。哈希表是一种非常适合存储对象的多个属性的数据结构，例如用户资料、产品信息等。
+
+## 下载redis服务 brew install redis
+## redis客户端安装 redis desktop manager
+## 客户端连接redis服务
+- 新建连接（Name：给该连接起一个名字，Host：redis服务器的ip地址，Port:redis服务器的端口号（默认端口6379），Auth:密码字段，如果redis服务器设置了密码验证，则需要填写，没有设置，为空即可，填写完再点击”Test Connection"进行测试，没有问题再点击OK完成连接）
+- 连接之后，你会看到，在左侧有0-15个db库可以供你选择！Redis默认就会有这些数据库，你可以选择其中一个来进行查看！
+## redis在实际工作中的应用场景
+设置 Redis 键（Key）：为每个需要进行失败重推的订单创建一个唯一的 Redis 键。这个键可以包含操作的唯一标识符或其他信息，以便你可以在后续的操作中识别它。
+
+设置键的过期时间：当你发起一个操作时，向 Redis 中设置相应键的过期时间。过期时间可以根据你的需求设置，以表示多次重推之间的时间间隔，例如，5分钟后重推，10分钟后重推，15分钟后重推。
+
+处理重推逻辑：在你的应用程序中，定期检查这些 Redis 键是否存在。如果 Redis 键存在，表示操作失败需要进行重推。你可以根据当前时间和键的过期时间来决定是否触发重推操作。
+
+限制重推次数：如果需要限制重推的次数，你可以在每次触发重推时记录重推次数，并在达到最大重推次数后停止重推。
+
+删除 Redis 键：当你成功重推操作或达到最大重推次数后，相应的 Redis 键被自动删除，以确保不再触发重推。
+
+不需要额外存储键的值，因为你只需要关注键的存在与否和过期时间。你可以使用 Redis 的过期时间机制来自动处理失败重推的时间间隔，而不需要记录失败次数。
+
+在 Redis 中，TTL 是 "Time To Live" 的缩写，表示键（key）的存活时间或过期时间。TTL 是一个用于控制键在 Redis 中存储多长时间的值，以秒为单位。
+TTL 在 Redis 中非常有用，它可以用于实现缓存、自动清理过期数据、限时任务等各种功能。通过设置适当的 TTL，你可以根据数据的生命周期来管理 Redis 中的键。
+你可以使用 Redis 的 TTL 功能来创建定时任务，而键的值可以为空，仅用于表示任务的存在和过期时间。
+
+实际场景中，重推时间为5min/10min/15min/2hour/4hour/6hour，可以通过修改TTL为60，来缩短测试时间，并且每次重推后需要到数据库去同步查看失败次数/到日志里去查看重推次数记录
+
+## 代码操作redis服务
+import redis
+import time
+
+<!-- 连接到 Redis-->
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+<!-- 假设操作标识符为 "operation_id"-->
+operation_id = "123"
+
+ <!--设置 Redis 键的过期时间，例如 5 分钟后触发重推-->
+r.setex(operation_id, 300, "pending")
+
+ <!--处理重推逻辑-->
+while True:
+    status = r.get(operation_id)
+    if status == "pending":
+        current_time = time.time()
+        expiration_time = r.ttl(operation_id)
+        if expiration_time <= 0:
+            # 重推逻辑，例如发送操作请求
+            print("Retrying operation...")
+            # 更新重推次数
+            r.incr(operation_id + "_retry_count")
+            # 设置下一次重推的过期时间，例如 10 分钟后
+            r.expire(operation_id, 600)
+        else:
+            print(f"Waiting for {expiration_time} seconds before retrying...")
+        time.sleep(1)  # 等待一秒钟再次检查
+    else:
+        print("Operation completed or exceeded maximum retries.")
+        # 删除 Redis 键
+        r.delete(operation_id)
+        break
+
 

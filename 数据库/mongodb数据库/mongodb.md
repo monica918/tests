@@ -86,3 +86,26 @@ MongoDB是正在成长但数据架构不稳定的业务或项目的最合适选�
   "total_amount": 799.98
 }
 
+## mysql与mangodb对比
+| mysql | MongoDB |
+|:---: | :---: |
+| 数据库 | 数据库 |
+|表格	| 集合 |
+| 行	 | 文档 |
+| 列 | 字段 |
+| 表联合	| 嵌入文档 |
+| 主键| 主键 (MongoDB 提供了 key 为 _id ) |
+
+
+## 文档(Document)
+文档是一组键值(key-value)对(即 BSON)。MongoDB 的文档不需要设置相同的字段，并且相同的字段不需要相同的数据类型，这与关系型数据库有很大的区别，也是 MongoDB 非常突出的特点。
+一个简单的文档例子如下：
+{"site":"www.runoob.com", "name":"菜鸟教程"}
+
+## 集合
+集合就是 MongoDB 文档组
+集合存在于数据库中，集合没有固定的结构，这意味着你在对集合可以插入不同格式和类型的数据，但通常情况下我们插入集合的数据都会有一定的关联性。
+比如，我们可以将以下不同数据结构的文档插入到集合中：
+{"site":"www.baidu.com"}
+{"site":"www.google.com","name":"Google"}
+{"site":"www.runoob.com","name":"菜鸟教程","num":5}

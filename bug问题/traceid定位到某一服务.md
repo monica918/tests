@@ -7,3 +7,6 @@ traceid 是分布式追踪系统中的一个重要概念。在复杂的微服务
 ## evcs服务定位到charging服务：
 - content: [回复响应]-加密前结果:{Ret=0, Data={"StartChargeSeq":"am1234567202309271601163817","StartChargeSeqStat":5,"ConnectorID":"30004000000000000000000X01","SuccStat":1,"FailReason":999,"FailReasonMsg":"java.lang.NullPointerException"}}
 - content: [启动充电]-接口异常->400:java.lang.NullPointerException,转换后:CECErrCode[code=999,msg=java.lang.NullPointerException]
+
+## 分析bug
+星充请求对方，evcs接受的响应数据ret=1，但是msp接受的响应数据ret=0，说明响应由msp返回到evcs的过程中报错了

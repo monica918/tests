@@ -1,6 +1,4 @@
 Python 列表（list）是一个有序的、可变的集合，可以包含任意类型的元素。以下是 Python 列表的相关知识点和用法：
-访问和修改元素
-a.索引访问
 numbers = [1, 2, 3, 4, 5]
 
 # 访问元素
@@ -9,8 +7,6 @@ last_element = numbers[-1]  # 5
 
 # 修改元素
 numbers[0] = 10  # [10, 2, 3, 4, 5]
-b. 切片访问
-numbers = [1, 2, 3, 4, 5]
 
 # 获取子列表
 sublist = numbers[1:4]  # [2, 3, 4]
@@ -46,6 +42,8 @@ first_element = numbers.pop(0)  # 1, [2, 4]
 
 # 使用 del 关键字删除指定位置的元素
 del numbers[1]  # [2]
+
+
 c. 查找元素
 numbers = [1, 2, 3, 4, 5]
 
@@ -65,10 +63,10 @@ numbers.sort()  # [1, 2, 3, 4, 5]
 # 降序排序
 numbers.sort(reverse=True)  # [5, 4, 3, 2, 1]
 
-b. 使用 sorted() 函数排序（返回新列表）
+
 numbers = [4, 2, 5, 1, 3]
 
-# 升序排序
+# 升序排序，生成新列表
 sorted_numbers = sorted(numbers)  # [1, 2, 3, 4, 5]
 
 # 原列表不变
@@ -103,16 +101,12 @@ length = len(numbers)  # 5
 检查元素是否存在
 numbers = [1, 2, 3, 4, 5]
 
-# 使用 in 运算符检查元素是否存在
-is_in_list = 3 in numbers  # True
-is_not_in_list = 6 not in numbers  # True
+
 
 列表反转
-numbers = [1, 2, 3, 4, 5]
+numbers = [1, 5, 3, 9, 5]
 
 # 使用 reverse() 方法原地反转
-numbers.reverse()  # [5, 4, 3, 2, 1]
+numbers.reverse()  # [5, 9, 3, 5, 1]
 
-# 使用切片反转
-reversed_numbers = numbers[::-1]  # [1, 2, 3, 4, 5]
 
